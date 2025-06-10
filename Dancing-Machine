@@ -1,0 +1,85 @@
+Hello! This is my first piece of documentation for my lab work. I have done a few other machines before this one in the starting point path of Hack The Box, but did not document them.
+
+In this file, I will detail how I solved the Dancing Starting Point machine.
+
+I began by scanning the port using nmap (target IP) and found the following ports:
+
+PORT    STATE SERVICE
+135/tcp open  msrpc
+139/tcp open  netbios-ssn
+445/tcp open  microsoft-ds
+
+I paid special attention to Port 445, as this is the port at which the Server Messaging Block (SMB) operates. This is an avenue I could use to get into the machine.
+
+Now, at this point I had a bit of a memory blank, so I refered to the official writeup for guidance. It had the following to say:
+
+"Smbclient will attempt to connect to the remote host and check if there is any authentication required. If
+there is, it will ask you for a password for your local username. We should take note of this. If we do not
+specify a specific username to smbclient when attempting to connect to the remote host, it will just use your
+local machine's username. That is the one you are currently logged into your Virtual Machine with. This is
+because SMB authentication always requires a username, so by not giving it one explicitly to try to login
+with, it will just have to pass your current local username to avoid throwing an error with the protocol.
+
+Nevertheless, let us use our local username since we do not know about any remote usernames present on
+the target host that we could potentially log in with. Next up, after that, we will be prompted for a password.
+This password is related to the username you input before. Hypothetically, if we were a legitimate remote
+user trying to log in to their resource, we would know our username and password and log in normally to
+access our share. In this case, we do not have such credentials, so what we will be trying to perform is any of
+the following:
+Guest authentication
+Anonymous authentication
+Any of these will result in us logging in without knowing a proper username/password combination and
+seeing the files stored on the share. "
+
+Inputing the command it prompted me to use (smbclient -L (target IP)) and using a blank password, I got the following result: 
+
+	Sharename       Type      Comment
+	---------       ----      -------
+	ADMIN$          Disk      Remote Admin
+	C$              Disk      Default share
+	IPC$            IPC       Remote IPC
+	WorkShares      Disk      
+
+There are 4 shares.
+
+I then used the smbclient \\\\IP\\Share command to try each share.
+
+All of them return connection failures, until I hit WorkShares which has a misconfigured password. This allows me to secure a foothold in the system.
+
+Once I'm in the system, I use the help command to find the one necessary to download files. That command ends up being 'get' after some searching on google.
+
+I used ls to scan the directory and got the following:
+
+  .                                   D        0  Mon Mar 29 08:22:01 2021
+  ..                                  D        0  Mon Mar 29 08:22:01 2021
+  Amy.J                               D        0  Mon Mar 29 09:08:24 2021
+  James.P                             D        0  Thu Jun  3 08:38:03 2021
+
+I then checked the directories of Amy and James using the cd command, finding a flag.txt file in James' directory. I then used the get command to download it.
+
+I then used the exit command to kill the shell and used 'cat' on the flag.txt, getting this result;
+5f61c10dffbc77a704d76016a22f1664
+
+This is the flag, and the machine is cracked.
+
+What did I learn?
+
+In this challenge, I learned how to effectively use nmap to identify open ports and focus on those that might provide an entry point, in this case, port 445 running SMB. I also gained a clearer understanding of how smbclient works when connecting to SMB shares, especially how it defaults to my local username if I don’t specify one, and how trying anonymous or guest authentication can help gain access when credentials are not known.
+
+I learned to enumerate available shares using smbclient -L and then test each share for misconfigurations or weak passwords. Discovering the misconfigured password on the WorkShares share was crucial for getting a foothold.
+
+Once inside, I familiarized myself with the basic smbclient commands like ls, cd, and get, and realized that sometimes a quick google search is key to finding the right commands, like get for downloading files.
+
+Finally, I understood the importance of methodical directory exploration to locate flags and how to safely exit the session when done.
+
+Overall, this exercise taught me practical SMB enumeration and exploitation steps, reinforced the value of checking default or weak share permissions, and highlighted the role of thorough command exploration to navigate remote systems.
+
+
+
+
+
+
+
+
+
+
