@@ -1,0 +1,53 @@
+This document will detail how I beat the Appointment machine in Hack The Box's starting point path.
+
+To recap from the last two machines, they featured relatively simple and straightforward techniques to get the flags. However, now that I'm on the next tier of machines, the techniques I have to utilize will become progressivelly complex.
+
+To get an initial reading of the situation, I ran nmap to scan the ports of the target IP.
+
+Starting Nmap 7.94SVN ( https://nmap.org ) at 2025-06-11 02:43 UTC
+Nmap scan report for 10.129.165.166
+Host is up (0.29s latency).
+Not shown: 999 closed tcp ports (conn-refused)
+PORT   STATE SERVICE
+80/tcp open  http
+
+Unlike the other machines I've done prior, I only had access to the HTTP port. HTTP is not a vulnerability I'm familiar with, so I had to do some research.
+
+In order to crack this machine, I'm going to have to do IP Enumaration, which is basically the process of gaining further information on a given IP.
+
+My first step was to find the version of the HTTP connection, which required me to run nmap -sC -sV (Target IP)
+
+Starting Nmap 7.94SVN ( https://nmap.org ) at 2025-06-11 02:46 UTC
+Nmap scan report for 10.129.165.166
+Host is up (0.40s latency).
+Not shown: 999 closed tcp ports (reset)
+PORT   STATE SERVICE VERSION
+80/tcp open  http    Apache httpd 2.4.38 ((Debian))
+|_http-server-header: Apache/2.4.38 (Debian)
+|_http-title: Login
+
+Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
+Nmap done: 1 IP address (1 host up) scanned in 26.19 seconds
+
+
+I pasted the IP into my browser, getting to a login page. From there I tried an SQL injection to see if I could get into a hidden page.
+
+Now, up until this point I've only had trivial experience with XSS and SQL, so I needed to do some research on what I needed to do next.
+
+I decided to go to W3 Schools to read up on the topic:
+https://www.w3schools.com/sql/sql_injection.asp
+
+I tried putting " or ""=" into both the username and password fields.
+
+It didn't work.
+
+At this point, I admit, I got stuck. So i referred to the guide. It turns out that my assumption of an SQL injection was correct, but I went about it wrong.
+
+In order to progress, I used the directed "admin'#" and any password. From there, I managed to get the flag.
+
+
+Congratulations!
+
+Your flag is: e3d0796d002a446c0e622226f42e9672
+
+And that's how, with a mix of my own research and help from the guide, I cracked the appointment machine.
