@@ -1,0 +1,26 @@
+This writeup will detail how I cracked the Sequel box on the Hack The Box Sequel machine in the Starting Point path.
+
+Started off with an nmap scan to see what was open:
+
+nmap -sC -sV 10.129.166.34
+Only port 3306 (MySQL) was open. The service was MariaDB version 10.3.27. Looked like it didn’t require a password to access, so I tried connecting straight in:
+
+
+mysql -u root -h 10.129.166.34
+Got in right away with root access, no password. From there, I ran show databases; and found a custom one called htb alongside the usual system ones.
+
+Switched into the htb database and listed the tables:
+
+USE htb;
+show tables;
+There were two: config and users. I went into config first just to see what kind of data it had:
+
+
+SELECT * FROM config;
+It dumped out a bunch of settings, but what stood out was this line:
+
+
+flag | 7b4bec00d1a39e3dd4e021ec3d915da8
+Flag was just sitting there in plain text.
+
+Super simple box. No exploitation needed. MySQL was completely exposed, and the root account didn’t require a password. The flag was stored in a readable table under the htb database. Just needed basic enumeration to grab it.
